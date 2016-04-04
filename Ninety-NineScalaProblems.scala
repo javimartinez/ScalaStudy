@@ -1,3 +1,4 @@
+import test.Test._
 
 object NinetyNineScalaProblems {
 	
@@ -270,7 +271,7 @@ xvfJ
   def removeAtTailRecursive[A](index:Int, ls:List[A]):(List[A],A) = {
 
       def _removeAtTailRecursive[A](index:Int,curList:List[A],ls:List[A]):(List[A],A)= (index,ls) match {
-        case (_,Nil) => throw new NoSuchElementException
+        case (_,Nil) => throw new NoSuchElementException // ??? => 
         case (0,h::tail) => (curList.reverse :::tail,h) 
         case (i,h::tail) => _removeAtTailRecursive(index-1,(h::curList),tail)  
       }
@@ -278,6 +279,19 @@ xvfJ
   }
 
   
+
+
+// other flatten: 
+
+def flatten2[A](ls:List[List[A]]): List[A] = {
+
+  def _flatten2[A](curList: List[A], ls:List[List[A]]):List[A]= ls match {
+      case Nil=> curList
+      case h::tail => _flatten2(curList ::: h,tail)
+  }
+
+  _flatten2(List(),ls)
+}
 
 //Calculate de n one term of fibonacci sucesion
 
@@ -298,9 +312,47 @@ xvfJ
 
  	}
 
+//  Exercise 20:  Remove the Kth element from a list.
+// Return the list and the removed element in a Tuple. Elements are numbered from 0.
+// Example:
 
+// scala> removeAt(1, List('a, 'b, 'c, 'd))
+// res0: (List[Symbol], Symbol) = (List('a, 'c, 'd),'b)
+
+
+def removeAt[A](index:Int, ls:List[A]): (List[A],A) ={
+  (ls.zipWithIndex.filter(x=> x._2 !=index).map(_._1), ls(index))
+}
+
+//  23: Extract a given number of randomly selected elements from a list.
+// Example:
+
+
+def randomSelect[A](amount:Int, ls: List[A]): List[A] = {
+
+  def _randomSelect[A](amount:Int,curList:List[A], ls:List[A], random: util.Random): List[A] = (amount,ls) match {
+    case (_,Nil) => throw new NoSuchElementException
+    case (0,_) => curList.reverse
+    case (i,ls) => {
+         // val random= scala.util.Random => Improvement about creating many instances of random. 
+          val (l:List[A],value:A) = removeAt(random.nextInt(ls.length),ls)
+          _randomSelect(amount-1,value :: curList,l,random)
+    }
+}
+  _randomSelect(amount,List(),ls, new util.Random)
 }
 
 
+// scala> randomSelect(3, List('a, 'b, 'c, 'd, 'f, 'g, 'h))
+// res0: List[Symbol] = List('e, 'd, 'a)
 
 
+
+// P22.) Create a list containing all integers within a given range.
+        // Example:
+        // scala> range(4, 9)
+        // res0: List[Int] = List(4, 5, 6, 7, 8, 9)
+
+  def range(c:Int,d:Int):List[Int] = (c to d).toList
+
+}
