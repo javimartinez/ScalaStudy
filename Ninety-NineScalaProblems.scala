@@ -1,4 +1,4 @@
-import Test.test._
+import test.Test._
 
 object NinetyNineScalaProblems {
 	

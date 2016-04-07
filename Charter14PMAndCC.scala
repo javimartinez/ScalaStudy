@@ -1,5 +1,5 @@
 
-import Test._
+import test.Test._
 
 
 object Charter14PMAndCC {
