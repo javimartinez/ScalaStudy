@@ -8,7 +8,7 @@ class Test[T](val target:T) {
   def tst[E](expected:E)(test: => Boolean){
     //println(target)
     if(test == false) {
-      val msg = "[Error] expected: " + target + " but found " + expected
+      val msg = "[Error] expected: " + expected + " but found " + target
       println(msg)
     }else {
       val msg = "Test Ok! the result is " + expected
