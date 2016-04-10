@@ -232,13 +232,44 @@ def test3_6() = {
 // return to in chapter 5.
 
 
+def product(ds: List[Double]): Double = ds match {
+	case Nil => 1.0
+	case Cons(x, xs) => x * product(xs)
+}
+
+def foldRight[A,B](as: List[A], z: B)(f: (A, B) => B): B = as match {
+	case Nil => z
+	case Cons(x, xs) => f(x, foldRight(xs, z)(f))
+}
+
+def productFR[A](ls:List[Int]): Int= {
+	foldRight(ls,1)((x,y)=> x*y)
+}
+def test3_7 () = {
+	val l:List[Int]= List(1,2,3,4)
+	productFR(l) is 24
+}
+
 // See what happens when you pass Nil and Cons themselves to foldRight , like this:
 // foldRight(List(1,2,3), Nil:List[Int])(Cons(_,_)) . 10 What do you think this
 // says about the relationship between foldRight and the data constructors of List ?
 
+//** The result about call  is res1: foldRight(List(1,2,3), Nil:List[Int])(Cons(_,_)) is 
+
+//FuncionalPrograming.List[Int] = Cons(1,Cons(2,Cons(3,Nil))) but I don't see the relationship between both
+
 // Compute the length of a list using foldRight .
 // def length[A](as: List[A]): Int
 
+def lengthFR[A](ls:List[A]):Int = {
+	foldRight(ls,0)((x,acc) => acc + 1)
+}
+
+def test3_8()={
+
+	val l=List(1,2,3,4,5)
+	lengthFR(l) is 5 
+}
 
 // Our implementation of foldRight is not tail-recursive and will result in a StackOver-
 // flowError for large lists (we say it’s not stack-safe). Convince yourself that this is the
@@ -251,38 +282,150 @@ def test3_6() = {
 // signature: 11
 // def foldLeft[A,B](as: List[A], z: B)(f: (B, A) => B): B
 
+def foldLeft[A,B](as: List[A], z: B)(f: (B, A) => B): B = as match {
+	case Nil => z
+	case Cons(h,tail) => foldLeft(tail,f(z,h))(f)
+}
+
+def test3_9()= {
+	
+	val l= List(1,2,3,4)
+	foldLeft(l,1)((x,y) => x * y) is 24
+
+}
+
 
 // Write sum , product , and a function to compute the length of a list using foldLeft .
 
-// 12 Write a function that returns the reverse of a list (given List(1,2,3) it returns
+def sumFL(ls:List[Int]):Int  = foldLeft(ls,0)((x,y)=>x + y) 
+
+def productFL(ls:List[Int]):Int = foldLeft(ls,1)((x,y) => x + y )
+
+def lengthFL[A](ls:List[A]):Int = foldLeft(ls,0)((x,y)=>x+1)
+
+def test3_11() = {
+
+	sumFL(List(1,2,3,4)) is 10
+	productFL(List(1,2,3,4)) is 24
+	lengthFR(List(1,2,3,4)) is 4
+}
+
+// Exercise 12: Write a function that returns the reverse of a list (given List(1,2,3) it returns
 // List(3,2,1) ). See if you can write it using a fold. 
+
+def reverse[A](ls:List[A]):List[A] = {
+
+	def _reverseTailRecursive[A](ls:List[A],curList:List[A]):List[A] = ls match {
+		case Nil => curList
+		case Cons(h,tail) => _reverseTailRecursive(tail,Cons(h,curList))
+	}
+_reverseTailRecursive(ls,List())
+
+}
+
+def reverseFR[A](ls:List[A]):List[A] = foldLeft(ls,List[A]())( (acc,x) => Cons(x,acc) )
+
+def test3_12(){
+
+	reverse(List(1,2,3,4)) is List(4,3,2,1)
+	reverseFR(List(1,2,3,4)) is List(4,3,2,1)
+}
 
 // Hard: Can you write foldLeft in terms of foldRight ? How about the other way
 // around? Implementing foldRight via foldLeft is useful because it lets us implement
 // foldRight tail-recursively, which means it works even for large lists without overflow-
 // ing the stack.
 
+def foldLeftFR[A,B](ls:List[A],z:B)(f:(B,A)=>B): B = foldRight(reverse(ls),z)((b,a) => f(a,b))
+
+def test3_13(){
+
+	foldLeftFR(List(1,2,3,4),0)((x,y) => x-y) is foldLeft(List(1,2,3,4),0)((x,y) => x-y)
+}
+
+// Other implementations:
+
+def foldLeftViaFoldRight[A,B](l: List[A], z: B)(f: (B,A) => B): B = 
+  foldRight(l, (b:B) => b)((a,g) => b => g(f(b,a)))(z)
+
+
+def foldRightViaFoldLeft_1[A,B](l: List[A], z: B)(f: (A,B) => B): B = 
+  foldLeft(l, (b:B) => b)((g,a) => b => g(f(a,b)))(z)
+
+
+
+//def foldRightFL[A,B](ls:List[A],z:B)(f:(A,B)=> B):B = 
 
 // Implement append in terms of either foldLeft or foldRight .
 
-// Hard: Write a function that concatenates a list of lists into a single list. Its runtime
+def appendFR[A](a1:List[A],a2:List[A]):List[A]= foldRight(a1,a2)(Cons(_,_)) // Cons(_,_) is the same as (x,y) => Cons(x,y)
+
+def appendFL[A](a1:List[A],a2:List[A]):List[A]= foldLeft(reverse(a1),a2)((x,y) => Cons(y,x) )
+
+def test3_14[A]() = {
+
+	appendFR(List(1,2,3),List(4,5,6) ) is List(1,2,3,4,5,6)
+	appendFL(List(1,2,3),List(4,5,6) ) is List(1,2,3,4,5,6)
+
+}
+
+// Exercise 15: Hard: Write a function that concatenates a list of lists into a single list. Its runtime
 // should be linear in the total length of all lists. Try to use functions we have already
 // defined.
+
+def concatenate[A](ls:List[List[A]]):List[A] = foldLeft(ls,List[A]())(appendFL)
+
+def test3_15()= {
+
+	concatenate(List(List(1,2,3), List(4,5))) is List(1,2,3,4,5)
+}
 
 // Write a function that transforms a list of integers by adding 1 to each element.
 // (Reminder: this should be a pure function that returns a new List !)
 
+def transforms(ls:List[Int]):List[Int] = {
 
-// 17 Write a function that turns each value in a List[Double] into a String . You can use
+	def _transforms(ls:List[Int],curList:List[Int]):List[Int] = ls match {
+		case Nil => reverse(curList)
+		case Cons(h,tail) => _transforms(tail,Cons(h+1,curList))
+	}
+
+_transforms(ls,List[Int]())
+
+}
+
+def transformsFR(ls:List[Int]):List[Int] = foldRight(ls,List[Int]())((a,acc) => Cons(a+1,acc))
+
+def test3_16() = {
+
+	transforms(List(1,2,3,4)) is List(2,3,4,5)
+	transformsFR(List(1,2,3,4)) is List(2,3,4,5)
+}
+
+//Exercise 17: Write a function that turns each value in a List[Double] into a String . You can use
 // the expression d.toString to convert some d: Double to a String .
 
+def DoubleToString(ls:List[Double]):List[String] = foldRight(ls,List[String]())( (a,acc) => Cons(a.toString,acc)) 
+
+def test3_17() = {
+
+	DoubleToString(List(1.0,2.0,3.0)) is List("1.0","2.0","3.0")
+}
 // Write a function map that generalizes modifying each element in a list while maintain-
 // ing the structure of the list. Here is its signature: 12
-// def map[A,B](as: List[A])(f: A => B): List[B]
+
+def map[A,B](as: List[A])(f: A => B): List[B] = foldRight(as,List[B]())((a,acc) => Cons(f(a),acc))
 
 // Write a function filter that removes elements from a list unless they satisfy a given
 // predicate. Use it to remove all odd numbers from a List[Int] .
-// def filter[A](as: List[A])(f: A => Boolean): List[A]
+
+
+def filter[A](as: List[A])(f: A => Boolean): List[A] = foldRight(as,List[A]())((a,acc) => if(f(a)) Cons(a,acc) else acc )
+
+def test3_18()={
+
+	filter(List(1,2,3,4))( (x) => x %2 == 0) is List(2,4) 
+}
 
 
 // Write a function flatMap that works like map except that the function given will return
@@ -292,13 +435,77 @@ def test3_6() = {
 // For instance, flatMap(List(1,2,3))(i => List(i,i)) should result in
 // List(1,1,2,2,3,3) .
 
+def flatMap[A,B](as:List[A])(f:A=>List[B]):List[B] = as match {
+	case Nil => Nil
+	case Cons(h,tail) => appendFR(f(h),flatMap(tail)(f))
+}
+
+def flatMapTR[A,B](as:List[A])(f:A => List[B]):List[B] = {
+
+	def _flatMapTR[A,B](as:List[A],curList:List[B])(f:A => List[B]) :List[B] = as match {
+		case Nil  => curList
+		case Cons(h,tail) => _flatMapTR(tail,appendFR(curList,f(h)))(f)
+
+	}
+
+	_flatMapTR(as,List[B]())(f)		
+} 
+
+def test3_19(){
+
+	flatMap(List(1,2,3))( i=> List(i,i)) is  List(1,1,2,2,3,3)
+    flatMapTR(List(1,2,3))( i=> List(i,i)) is  List(1,1,2,2,3,3)
+
+}
+
+
 // 21 Use flatMap to implement filter .
+
+def filterFM[A](as:List[A])(f:A=> Boolean):List[A] = flatMap(as)(x=> if(f(x)) Cons(x,Nil) else List[A]())
+
+def test3_21()= {
+
+	filterFM(List(1,2,3,4,5))(x=> x % 2== 0) is List(2,4)
+}
 
 // Write a function that accepts two lists and constructs a new list by adding correspond-
 // ing elements. For example, List(1,2,3) and List(4,5,6) become List(5,7,9) .
 
+def correspond(a1:List[Int],a2:List[Int]):List[Int] =  {
+
+	def _correspond(a1:List[Int],a2:List[Int],curList:List[Int]):List[Int] = (a1,a2) match {
+		case (_,Nil)   => reverse(curList)
+		case (Nil,_)  => reverse(curList) 
+		case (Cons(h1,tail1),Cons(h2,tail2)) => _correspond(tail1,tail2,Cons((h1+h2),curList))
+	}
+
+ _correspond(a1,a2,Nil:List[Int])
+
+}
+
+def test3_22(){
+
+	correspond(List(1,2,3),List(1,2,3)) is List(2,4,6)
+}
+
 // Generalize the function you just wrote so that it’s not specific to integers or addition.
-// Name your generalized function zipWith .
+// Name your generalized function zipWith.
+
+def zipWith[A](a1:List[A],a2:List[A])(f:(A,A) => A ):List[A] ={
+
+	def _zipWith[A](a1:List[A],a2:List[A],curList:List[A])(f:(A,A) => A): List[A] = (a1,a2) match {
+		case (_,Nil) => reverse(curList)
+		case (Nil,_) => reverse(curList)
+		case (Cons(h1,tail1),Cons(h2,tail2)) => _zipWith(tail1,tail2,Cons(f(h1,h2),curList))(f)
+	}
+
+	_zipWith(a1,a2,List[A]())(f)
+}
+
+def test3_23()={
+
+	zipWith(List(1,2,3),List(1,2,3))(_+_) is List(2,4,6)
+}
 
 // 24 Hard: As an example, implement hasSubsequence for checking whether a List con-
 // tains another List as a subsequence. For instance, List(1,2,3,4) would have
@@ -336,5 +543,7 @@ def test3_6() = {
 // 29.Generalize size , maximum , depth , and map , writing a new function fold that abstracts
 // over their similarities. Reimplement them in terms of this more general function. Can
 // you draw an analogy between this fold function and the left and right folds for List ?
+
+
  }
 
