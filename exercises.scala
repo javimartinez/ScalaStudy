@@ -141,8 +141,7 @@ trait NumberLike[A] {
 
 	 def plus(a1:A,a2:A):A
 	 def mult(a1:A,a2:A):A
-	 def div (a1:A,a2:A):A
-	 def minus()
+	 def div (a1:A,a2:Int):A
 
 }
 
@@ -151,16 +150,16 @@ object NumberLike{
 	implicit val NumberLikeDouble:NumberLike[Double]= new NumberLike[Double] {
 		def plus(a1:Double,a2:Double):Double= a1 + a2
 		def mult(a1:Double,a2:Double):Double = a1 * a2
-		def div(a1:Double,a2:Double):Double = a1 / a2
-		def minus(x: Int, y: Int): Double = x - y
+		def div(a1:Double,a2:Int):Double = a1 / a2
 		
 	}
-
-	implicit val NumberLikeInt:NumberLike[Int] = new  NumberLike[Int] {
+	
+	/*implicit val NumberLikeInt:NumberLike[Int] = new  NumberLike[Int] {
       def plus(x: Int, y: Int): Int = x + y
       def div(x: Int, y: Int): Int = x / y
       def minus(x: Int, y: Int): Int = x - y
-    }
+    }*/
+
 }
 
 
@@ -176,7 +175,13 @@ object Statistics2 {
 	import Math.NumberLike
 	def mean[T](xs:Vector[T])(implicit ev:NumberLike[T]):T = ev.div(xs.reduce(ev.plus(_,_)),xs.size)
 
+}
 
+
+def test6()= {
+	import Statistics2._
+
+	mean(Vector(2.0,2.0,2.0)) is 2.0 
 }
 
 }
